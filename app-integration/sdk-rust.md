@@ -1,0 +1,94 @@
+# Rust SDK
+
+[`stackure`](https://crates.io/crates/stackure) on crates.io — drop-in tower middleware for axum, tonic, and hyper. Rust 2024 edition.
+
+## Install
+
+```toml
+[dependencies]
+stackure = "1"
+```
+
+## Protect an app
+
+```rust
+use stackure::{auth, user_from_request};
+
+const APP_ID: &str = "YOUR_APP_ID";
+
+let app = Router::new()
+    .route("/admin", get(handler))
+    .layer(auth(APP_ID, &["view_any_app"]));
+```
+
+Access the authenticated user in your handler:
+
+```rust
+let user = user_from_request(&parts).unwrap();
+println!("{} {:?}", user.user_email, user.user_permissions);
+```
+
+In axum you can also take an `Extension<User>` directly.
+
+- API requests get JSON errors
+- Browser requests get redirected to sign-in
+- The sign-in handoff is automatic — see [Sign-in handoff](sdk.md#sign-in-handoff)
+
+## Verify manually
+
+```rust
+let result = stackure::verify(APP_ID, &parts, &["view_any_app"]).await;
+
+if !result.authenticated {
+    let error = result.error.unwrap();
+    // error.code, error.message, error.sign_in_url
+}
+
+// result.user
+```
+
+`verify` never returns an error — transport and API failures come back as a
+500 result.
+
+## Send a magic link
+
+```rust
+let resp = stackure::send_magic_link("user@example.com", Some(APP_ID)).await?;
+// resp.message
+```
+
+## Log out
+
+```rust
+let response: Response<Body> = stackure::logout(&parts);
+```
+
+Returns a 303 that clears the app's cookie and redirects to Stackure's
+sign-out.
+
+## Errors
+
+Everything except `verify` returns `StackureError`. Match on the variant, or
+call `.code()` for the same category string the other SDKs expose as `.code`:
+
+```rust
+use stackure::StackureError;
+
+match stackure::send_magic_link(email, None).await {
+    Err(StackureError::Validation(m)) => {}
+    Err(StackureError::Auth(m)) => {}
+    Err(StackureError::Forbidden(m)) => {}
+    Err(StackureError::Timeout(m)) => {}
+    Err(StackureError::Network(m)) => {}
+    Ok(resp) => {}
+}
+```
+
+## Dependencies
+
+Rust's standard library has no HTTP client and no TLS, so unlike the other
+three SDKs this one cannot be dependency-free. It builds on `hyper` and
+`rustls` — the stack axum and tonic already run on — rather than a
+higher-level client, so in a typical axum app it adds around twenty crates.
+
+See [SDK overview](sdk.md) for the handoff, session binding, and configuration rules that apply to every SDK.

@@ -2155,7 +2155,7 @@ components:
           type: string
         user_last_name:
           type: string
-        user_roles:
+        user_permissions:
           type: array
           items:
             type: string

@@ -97,10 +97,18 @@ Choose your integration path:
 
 ### SDK (recommended)
 
-Minimal setup and built-in helpers for token validation and permission
-checks.
+One line to protect a route. The SDK handles the sign-in handoff, session
+validation, and permission checks for you.
 
-See the [SDK Guide](sdk-js.md).
+| Language | Guide |
+|---|---|
+| Go | [Go SDK](sdk-go.md) |
+| JavaScript / TypeScript | [JavaScript SDK](sdk-js.md) |
+| Python | [Python SDK](sdk-py.md) |
+| Rust | [Rust SDK](sdk-rust.md) |
+
+All four behave identically — see the [SDK overview](sdk.md) for the shared
+rules.
 
 ### Custom API integration
 

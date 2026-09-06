@@ -71,7 +71,7 @@ A 403 always returns JSON:
 ```json
 {
   "error": "Forbidden",
-  "message": "Requires one of: view_any_app",
+  "message": "Requires one of: can_approve_invoice",
   "sign_in_url": ""
 }
 ```

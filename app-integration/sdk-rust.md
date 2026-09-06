@@ -18,7 +18,7 @@ const APP_ID: &str = "YOUR_APP_ID";
 
 let app = Router::new()
     .route("/admin", get(handler))
-    .layer(auth(APP_ID, &["view_any_app"]));
+    .layer(auth(APP_ID, &["can_approve_invoice"]));
 ```
 
 Access the authenticated user in your handler:
@@ -37,7 +37,7 @@ In axum you can also take an `Extension<User>` directly.
 ## Verify manually
 
 ```rust
-let result = stackure::verify(APP_ID, &parts, &["view_any_app"]).await;
+let result = stackure::verify(APP_ID, &parts, &["can_approve_invoice"]).await;
 
 if !result.authenticated {
     let error = result.error.unwrap();

@@ -15,7 +15,7 @@ import "stackure.com/sdk-go"
 
 const appID = "YOUR_APP_ID"
 
-http.Handle("/admin", stackure.Auth(appID, "view_any_app")(handler))
+http.Handle("/admin", stackure.Auth(appID, "can_approve_invoice")(handler))
 ```
 
 Access the authenticated user in your handler:
@@ -32,7 +32,7 @@ fmt.Println(user.UserEmail, user.UserPermissions)
 ## Verify manually
 
 ```go
-result := stackure.Verify(appID, r, "view_any_app")
+result := stackure.Verify(appID, r, "can_approve_invoice")
 
 if !result.Authenticated {
     // result.Error.Code, result.Error.Message, result.Error.SignInURL

@@ -90,7 +90,7 @@ curl "https://stackure.com/api/public/auth/session/validate?app_id=YOUR_APP_ID" 
     "user_email": "user@example.com",
     "user_first_name": "John",
     "user_last_name": "Doe",
-    "user_permissions": ["view_any_app", "edit_any_app"]
+    "user_permissions": ["can_approve_invoice", "edit_any_app"]
   }
 }
 ```

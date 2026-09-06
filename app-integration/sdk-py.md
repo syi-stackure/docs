@@ -16,10 +16,10 @@ import stackure
 app_id = "YOUR_APP_ID"
 
 # ASGI — FastAPI, Starlette, Quart
-app = stackure.auth(app_id, "view_any_app")(app)
+app = stackure.auth(app_id, "can_approve_invoice")(app)
 
 # WSGI — Flask, Django
-flask_app.wsgi_app = stackure.auth(app_id, "view_any_app")(flask_app.wsgi_app)
+flask_app.wsgi_app = stackure.auth(app_id, "can_approve_invoice")(flask_app.wsgi_app)
 ```
 
 The same wrapper handles both; it detects the protocol from the app you wrap.
@@ -38,7 +38,7 @@ print(user.user_email, user.user_permissions)
 ## Verify manually
 
 ```python
-result = stackure.verify(app_id, request, "view_any_app")
+result = stackure.verify(app_id, request, "can_approve_invoice")
 
 if not result.authenticated:
     # result.error.code, result.error.message, result.error.sign_in_url

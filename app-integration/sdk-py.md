@@ -8,18 +8,26 @@
 pip install stackure
 ```
 
+## Configure
+
+```bash
+export STACKURE_APP_ID=...       # the app's UUID, shown on the app's page in Stackure
+export STACKURE_APP_SECRET=...   # the app secret, shown at registration and on each rotation
+```
+
+The SDK reads both from the environment, so no function takes an app ID. See
+[Configuration](sdk.md#configuration).
+
 ## Protect an app
 
 ```python
 import stackure
 
-app_id = "YOUR_APP_ID"
-
 # ASGI — FastAPI, Starlette, Quart
-app = stackure.auth(app_id, "can_approve_invoice")(app)
+app = stackure.auth("can_approve_invoice")(app)
 
 # WSGI — Flask, Django
-flask_app.wsgi_app = stackure.auth(app_id, "can_approve_invoice")(flask_app.wsgi_app)
+flask_app.wsgi_app = stackure.auth("can_approve_invoice")(flask_app.wsgi_app)
 ```
 
 The same wrapper handles both; it detects the protocol from the app you wrap.
@@ -39,10 +47,10 @@ print(user.user_email, user.user_permissions)
 
 ```python
 # ASGI — FastAPI, Starlette
-app.mount("/mcp", stackure.mcp(app_id, "can_approve_invoice")(mcp_app))
+app.mount("/mcp", stackure.mcp("can_approve_invoice")(mcp_app))
 
 # WSGI
-mcp_wsgi_app = stackure.mcp(app_id)(mcp_wsgi_app)
+mcp_wsgi_app = stackure.mcp()(mcp_wsgi_app)
 ```
 
 AI clients (Claude, Claude Code, VS Code, Cursor) sign users in through
@@ -60,7 +68,7 @@ URL unless an MCP URL is set for the app in Stackure. See [MCP](sdk.md#mcp).
 ## Verify manually
 
 ```python
-result = stackure.verify(app_id, request, "can_approve_invoice")
+result = stackure.verify(request, "can_approve_invoice")
 
 if not result.authenticated:
     # result.error.code, result.error.message, result.error.sign_in_url
@@ -76,7 +84,7 @@ It accepts a WSGI `environ`, an ASGI `scope`, or a framework request object
 ## Send a magic link
 
 ```python
-resp = stackure.send_magic_link("user@example.com", app_id)
+resp = stackure.send_magic_link("user@example.com")
 # resp.message
 ```
 

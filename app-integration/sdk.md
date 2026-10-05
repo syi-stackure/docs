@@ -120,8 +120,9 @@ could sign the user out with no confirmation.
 AI clients such as Claude, Claude Code, VS Code and Cursor reach your app
 through its MCP endpoint. Protecting it takes one line: mount the MCP
 middleware on that route, `MCP` in Go and `mcp` in the other SDKs. It takes
-the same arguments as the auth middleware and uses the same app ID and
-`STACKURE_APP_SECRET`, so there is no new secret and no extra setup.
+the same arguments as the auth middleware and uses the same
+`STACKURE_APP_ID` and `STACKURE_APP_SECRET`, so there is no new secret and no
+extra setup.
 
 1. The user adds your app's MCP address in their AI client
 2. The client is told to sign in at Stackure
@@ -152,8 +153,23 @@ middleware as well. When it turns a request away, the answer is JSON:
 
 ## Configuration
 
-There is no configuration API. Point an SDK at a non-production environment by
-setting `STACKURE_BASE_URL` before the first call:
+There is no configuration API. Every SDK reads its settings from the
+environment:
+
+```bash
+export STACKURE_APP_ID=...       # the app's UUID, shown on the app's page in Stackure
+export STACKURE_APP_SECRET=...   # the app secret, shown at registration and on each rotation
+```
+
+`STACKURE_APP_ID` is read at call time by every call except `logout`, so no
+function takes an app ID. If it is unset, the call fails with a `validation` error, `STACKURE_APP_ID is not
+set`; if it is not a UUID, with `invalid STACKURE_APP_ID format (must be a
+valid UUID)`. In the middleware and `verify` this surfaces like any other
+failed check: the auth middleware answers 500, the MCP middleware 503, and
+`verify` returns a 500 result.
+
+Point an SDK at a non-production environment by setting `STACKURE_BASE_URL`
+before the first call:
 
 ```bash
 STACKURE_BASE_URL=https://stage.stackure.com
@@ -170,7 +186,7 @@ Every SDK exposes one error type with the same five categories:
 
 | Code | Meaning |
 |---|---|
-| `validation` | Bad input, caught before any request |
+| `validation` | Bad input or a missing or malformed setting, caught before any request |
 | `auth` | 401 from the API |
 | `forbidden` | 403 from the API |
 | `timeout` | Request exceeded the 2-second timeout |

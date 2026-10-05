@@ -8,14 +8,22 @@
 npm install stackure
 ```
 
+## Configure
+
+```bash
+export STACKURE_APP_ID=...       # the app's UUID, shown on the app's page in Stackure
+export STACKURE_APP_SECRET=...   # the app secret, shown at registration and on each rotation
+```
+
+The SDK reads both from the environment, so no function takes an app ID. See
+[Configuration](sdk.md#configuration).
+
 ## Protect a route
 
 ```js
 import { auth, userFromRequest } from 'stackure';
 
-const appId = 'YOUR_APP_ID';
-
-app.get('/admin', auth(appId, 'can_approve_invoice'), (req, res) => {
+app.get('/admin', auth('can_approve_invoice'), (req, res) => {
   const user = userFromRequest(req);
   res.json({ email: user.user_email, permissions: user.user_permissions });
 });
@@ -34,7 +42,7 @@ Express, Connect, and a bare `http.createServer`. On Fastify, pass
 ```js
 import { mcp, userFromRequest } from 'stackure';
 
-app.all('/mcp', mcp(appId), (req, res) => {
+app.all('/mcp', mcp(), (req, res) => {
   const user = userFromRequest(req);
   // serve the MCP request
 });
@@ -59,7 +67,7 @@ URL unless an MCP URL is set for the app in Stackure. See [MCP](sdk.md#mcp).
 ```js
 import { verify } from 'stackure';
 
-const result = await verify(appId, req, 'can_approve_invoice');
+const result = await verify(req, 'can_approve_invoice');
 
 if (!result.authenticated) {
   return res.status(result.error.code).json(result.error);
@@ -75,7 +83,7 @@ if (!result.authenticated) {
 ```js
 import { sendMagicLink } from 'stackure';
 
-const resp = await sendMagicLink('user@example.com', appId);
+const resp = await sendMagicLink('user@example.com');
 // resp.message
 ```
 

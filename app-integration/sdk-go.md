@@ -8,14 +8,22 @@
 go get stackure.com/sdk-go
 ```
 
+## Configure
+
+```bash
+export STACKURE_APP_ID=...       # the app's UUID, shown on the app's page in Stackure
+export STACKURE_APP_SECRET=...   # the app secret, shown at registration and on each rotation
+```
+
+The SDK reads both from the environment, so no function takes an app ID. See
+[Configuration](sdk.md#configuration).
+
 ## Protect a route
 
 ```go
 import "stackure.com/sdk-go"
 
-const appID = "YOUR_APP_ID"
-
-http.Handle("/admin", stackure.Auth(appID, "can_approve_invoice")(handler))
+http.Handle("/admin", stackure.Auth("can_approve_invoice")(handler))
 ```
 
 Access the authenticated user in your handler:
@@ -32,7 +40,7 @@ fmt.Println(user.UserEmail, user.UserPermissions)
 ## MCP
 
 ```go
-http.Handle("/mcp", stackure.MCP(appID)(mcpHandler)) // mcpHandler is your MCP server's http.Handler
+http.Handle("/mcp", stackure.MCP()(mcpHandler)) // mcpHandler is your MCP server's http.Handler
 ```
 
 AI clients such as Claude, Claude Code, VS Code and Cursor sign users in
@@ -52,7 +60,7 @@ URL unless an MCP URL is set for the app in Stackure. See [MCP](sdk.md#mcp).
 ## Verify manually
 
 ```go
-result := stackure.Verify(appID, r, "can_approve_invoice")
+result := stackure.Verify(r, "can_approve_invoice")
 
 if !result.Authenticated {
     // result.Error.Code, result.Error.Message, result.Error.SignInURL
@@ -67,7 +75,7 @@ if !result.Authenticated {
 ## Send a magic link
 
 ```go
-resp, err := stackure.SendMagicLink("user@example.com", appID)
+resp, err := stackure.SendMagicLink("user@example.com")
 // resp.Message
 ```
 

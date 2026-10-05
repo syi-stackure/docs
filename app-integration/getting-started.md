@@ -100,6 +100,10 @@ Choose your integration path:
 One line to protect a route. The SDK handles the sign-in handoff, session
 validation, and permission checks for you.
 
+Set `STACKURE_APP_ID` to the `app_id` from Step 1 and `STACKURE_APP_SECRET` to
+the app secret shown once when you registered the app (rotate it from the app's
+page if you no longer have it), then follow the guide for your language.
+
 | Language | Guide |
 |---|---|
 | Go | [Go SDK](sdk-go.md) |

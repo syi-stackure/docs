@@ -9,16 +9,24 @@
 stackure = "1"
 ```
 
+## Configure
+
+```bash
+export STACKURE_APP_ID=...       # the app's UUID, shown on the app's page in Stackure
+export STACKURE_APP_SECRET=...   # the app secret, shown at registration and on each rotation
+```
+
+The SDK reads both from the environment, so no function takes an app ID. See
+[Configuration](sdk.md#configuration).
+
 ## Protect an app
 
 ```rust
 use stackure::{auth, user_from_request};
 
-const APP_ID: &str = "YOUR_APP_ID";
-
 let app = Router::new()
     .route("/admin", get(handler))
-    .layer(auth(APP_ID, &["can_approve_invoice"]));
+    .layer(auth(&["can_approve_invoice"]));
 ```
 
 Access the authenticated user in your handler:
@@ -41,7 +49,7 @@ use stackure::mcp;
 
 let app = Router::new()
     .route("/mcp", any(handler))
-    .layer(mcp(APP_ID, &[]));
+    .layer(mcp(&[]));
 ```
 
 AI clients such as Claude, Claude Code, VS Code and Cursor sign users in
@@ -59,7 +67,7 @@ URL unless an MCP URL is set for the app in Stackure. See [MCP](sdk.md#mcp).
 ## Verify manually
 
 ```rust
-let result = stackure::verify(APP_ID, &parts, &["can_approve_invoice"]).await;
+let result = stackure::verify(&parts, &["can_approve_invoice"]).await;
 
 if !result.authenticated {
     let error = result.error.unwrap();
@@ -75,7 +83,7 @@ if !result.authenticated {
 ## Send a magic link
 
 ```rust
-let resp = stackure::send_magic_link("user@example.com", Some(APP_ID)).await?;
+let resp = stackure::send_magic_link("user@example.com").await?;
 // resp.message
 ```
 
@@ -110,7 +118,7 @@ as `.code`:
 ```rust
 use stackure::StackureError;
 
-match stackure::send_magic_link(email, None).await {
+match stackure::send_magic_link(email).await {
     Err(StackureError::Validation(m)) => {}
     Err(StackureError::Auth(m)) => {}
     Err(StackureError::Forbidden(m)) => {}

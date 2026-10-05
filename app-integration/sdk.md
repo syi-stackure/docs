@@ -115,6 +115,41 @@ could sign the user out with no confirmation.
 
 ---
 
+## MCP
+
+AI clients such as Claude, Claude Code, VS Code and Cursor reach your app
+through its MCP endpoint. Protecting it takes one line: mount the MCP
+middleware on that route, `MCP` in Go and `mcp` in the other SDKs. It takes
+the same arguments as the auth middleware and uses the same app ID and
+`STACKURE_APP_SECRET`, so there is no new secret and no extra setup.
+
+1. The user adds your app's MCP address in their AI client
+2. The client is told to sign in at Stackure
+3. The user signs in and confirms
+4. From then on, every MCP request is checked in real time by that one line
+
+Access ends when the user signs out, disconnects the client, loses access to
+your app, or leaves the connection unused for 30 days. Users can see and
+disconnect their AI clients in Stackure under **AI Clients**.
+
+**The MCP endpoint must be on the same site as your app's registered URL**
+(the same host and port), unless an MCP URL is set for the app in Stackure.
+The SDK works out the endpoint's address from the request's scheme, `Host`
+header and path, so behind a proxy or CDN make sure the original `Host` and
+`X-Forwarded-Proto` reach your app.
+
+The MCP middleware reads only `Authorization: Bearer`. It ignores cookies and
+never redirects, so mount it on the MCP route alone, not behind the auth
+middleware as well. When it turns a request away, the answer is JSON:
+
+| Status | Body | When |
+|---|---|---|
+| 401 | `{"error":"unauthorized"}` | Not signed in. The `WWW-Authenticate` header tells the AI client where to sign in |
+| 403 | `{"error":"forbidden"}` | Signed in, but holds none of the required permissions |
+| 503 | `{"error":"unavailable"}` | The check against Stackure could not be completed |
+
+---
+
 ## Configuration
 
 There is no configuration API. Point an SDK at a non-production environment by
@@ -152,6 +187,7 @@ either: it always answers with a redirect.
 | | Go | JavaScript | Python | Rust |
 |---|---|---|---|---|
 | Middleware | `Auth` | `auth` | `auth` | `auth` |
+| MCP middleware | `MCP` | `mcp` | `mcp` | `mcp` |
 | Manual check | `Verify` | `verify` | `verify` | `verify` |
 | Read user | `UserFromContext` | `userFromRequest` | `user_from_request` | `user_from_request` |
 | Magic link | `SendMagicLink` | `sendMagicLink` | `send_magic_link` | `send_magic_link` |

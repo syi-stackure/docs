@@ -29,6 +29,26 @@ fmt.Println(user.UserEmail, user.UserPermissions)
 - Browser requests get redirected to sign-in
 - The sign-in handoff is automatic — see [Sign-in handoff](sdk.md#sign-in-handoff)
 
+## MCP
+
+```go
+http.Handle("/mcp", stackure.MCP(appID)(mcpHandler)) // mcpHandler is your MCP server's http.Handler
+```
+
+AI clients such as Claude, Claude Code, VS Code and Cursor sign users in
+through Stackure. This one line checks every MCP request against Stackure in
+real time with the same app secret. There is no extra setup.
+
+`MCP` takes the same arguments as `Auth`, including required permissions, and
+attaches the user the same way, so `UserFromContext` works in `mcpHandler`.
+
+- A request that is not signed in gets a `401` with a `WWW-Authenticate` header that tells the AI client where to sign in, and the JSON body `{"error":"unauthorized"}`
+- A missing permission gets a `403`, a check that cannot be completed gets a `503`
+- `MCP` never redirects and never reads or sets a cookie
+
+The MCP endpoint must be served from the same site as the app's registered
+URL unless an MCP URL is set for the app in Stackure. See [MCP](sdk.md#mcp).
+
 ## Verify manually
 
 ```go

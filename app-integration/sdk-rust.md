@@ -34,6 +34,28 @@ In axum you can also take an `Extension<User>` directly.
 - Browser requests get redirected to sign-in
 - The sign-in handoff is automatic — see [Sign-in handoff](sdk.md#sign-in-handoff)
 
+## MCP
+
+```rust
+use stackure::mcp;
+
+let app = Router::new()
+    .route("/mcp", any(handler))
+    .layer(mcp(APP_ID, &[]));
+```
+
+AI clients such as Claude, Claude Code, VS Code and Cursor sign users in
+through Stackure. This one line checks every MCP request in real time with the
+same app secret; there is no extra setup.
+
+- `mcp` takes the same arguments as `auth`, including required permissions, and attaches the user exactly as `auth` does
+- Only `Authorization: Bearer` is read; cookies are ignored
+- A request that is not signed in gets a `401` with a `WWW-Authenticate` header that tells the AI client where to sign in, and the JSON body `{"error":"unauthorized"}`
+- A missing permission gets a `403`, a failed check a `503`, all JSON and never a redirect
+
+The MCP endpoint must be served from the same site as the app's registered
+URL unless an MCP URL is set for the app in Stackure. See [MCP](sdk.md#mcp).
+
 ## Verify manually
 
 ```rust

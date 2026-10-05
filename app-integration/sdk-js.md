@@ -29,6 +29,31 @@ The middleware writes with `res.setHeader` / `res.writeHead`, so it works on
 Express, Connect, and a bare `http.createServer`. On Fastify, pass
 `request.raw` and `reply.raw`.
 
+## MCP
+
+```js
+import { mcp, userFromRequest } from 'stackure';
+
+app.all('/mcp', mcp(appId), (req, res) => {
+  const user = userFromRequest(req);
+  // serve the MCP request
+});
+```
+
+AI clients such as Claude, Claude Code, VS Code and Cursor sign users in
+through Stackure. This one line checks every MCP request in real time with the
+same app secret. There is no extra setup.
+
+`mcp` takes the same arguments as `auth`, including required permissions, and
+attaches the user the same way.
+
+- A request that is not signed in gets a `401` with a `WWW-Authenticate` header that tells the AI client where to sign in, and the JSON body `{"error":"unauthorized"}`
+- A missing permission gets a `403`, a failed check gets a `503`
+- `mcp` reads only `Authorization: Bearer`, never a cookie, and never redirects
+
+The MCP endpoint must be served from the same site as the app's registered
+URL unless an MCP URL is set for the app in Stackure. See [MCP](sdk.md#mcp).
+
 ## Verify manually
 
 ```js

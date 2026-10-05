@@ -134,4 +134,70 @@ a link on any other site sign the user out everywhere with no confirmation.
 
 ---
 
+## Step 5. Protect your MCP endpoint
+
+Skip this step if your app has no MCP endpoint.
+
+AI clients such as Claude, Claude Code, VS Code and Cursor do not use your
+cookie. The user adds your app's MCP address in their AI client, the client is
+told to sign in at Stackure, and the user signs in and confirms. From then on
+the client sends `Authorization: Bearer <credential>` with every MCP request.
+Stackure issues that credential; your endpoint checks it on every request at
+the Step 3 endpoint, with an added `mcp` parameter.
+
+**Request**
+```bash
+curl "https://stackure.com/api/public/auth/session/validate?app_id=YOUR_APP_ID&mcp=https%3A%2F%2Fmyapp.com%2Fmcp" \
+  -H "X-App-Secret: YOUR_APP_SECRET" \
+  -H "Authorization: Bearer CREDENTIAL"
+```
+
+- `mcp` is the public URL of the MCP endpoint the request arrived at: the
+  scheme, `://`, the `Host` header and the request path, with no query string
+  and no fragment, percent-encoded as a query value
+- `X-App-Secret` is your app secret, shown on the app's page in Stackure at
+  registration and on each rotation
+- Take the credential only from the incoming `Authorization: Bearer` header
+  (the scheme is case-insensitive) and send it on as
+  `Authorization: Bearer <credential>`. If the request has none, make the
+  same call without that header
+- Never send a cookie on this call, and never log the credential or the app
+  secret
+
+**Response if signed in**
+
+The same body as in Step 3: `"authenticated": true` and the `user` object.
+Serve the request. If the route needs a permission that is not in
+`user_permissions`, answer `403` with the body `{"error":"forbidden"}`.
+
+**Response if not signed in**
+```json
+{
+  "authenticated": false,
+  "sign_in_url": "https://stackure.com/sign-in/magic-link?app_id=YOUR_APP_ID",
+  "www_authenticate": "Bearer resource_metadata=\"...\""
+}
+```
+
+Answer `401` with the `www_authenticate` value, unchanged, as the
+`WWW-Authenticate` header (send `Bearer` if the field is missing),
+`Content-Type: application/json`, and the body `{"error":"unauthorized"}`.
+That header tells the AI client to sign in at Stackure. Never redirect, and
+never set or clear a cookie.
+
+**Any other status, or a network error**
+
+Answer `503` with the body `{"error":"unavailable"}`. This covers 400, 401
+for a wrong app secret, 429, 5xx and no response at all. Never treat the
+caller as signed in.
+
+The MCP endpoint must be on the same site as your app's registered URL (the
+same host and port), unless an MCP URL is set for the app in Stackure.
+
+Access ends when the user signs out, disconnects the client, loses access to
+your app, or leaves the connection unused for 30 days. Users can see and
+disconnect their AI clients in Stackure under **AI Clients**.
+
+---
+
 **Prefer a simpler setup?** See the [SDK overview](sdk.md).

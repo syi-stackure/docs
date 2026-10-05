@@ -35,6 +35,28 @@ print(user.user_email, user.user_permissions)
 - Browser requests get redirected to sign-in
 - The sign-in handoff is automatic — see [Sign-in handoff](sdk.md#sign-in-handoff)
 
+## MCP
+
+```python
+# ASGI — FastAPI, Starlette
+app.mount("/mcp", stackure.mcp(app_id, "can_approve_invoice")(mcp_app))
+
+# WSGI
+mcp_wsgi_app = stackure.mcp(app_id)(mcp_wsgi_app)
+```
+
+AI clients (Claude, Claude Code, VS Code, Cursor) sign users in through
+Stackure. This one line checks every MCP request in real time with the same
+app secret; there is no extra setup.
+
+- `mcp` wraps ASGI and WSGI apps like `auth`, with the same optional permissions and `user_from_request`
+- It reads `Authorization: Bearer` and ignores cookies, so keep the MCP route outside `stackure.auth`
+- A request that is not signed in gets a `401` with a `WWW-Authenticate` header that tells the AI client where to sign in, and the JSON body `{"error":"unauthorized"}`
+- A missing permission gets a `403`, a failed check a `503`; never a redirect
+
+The MCP endpoint must be served from the same site as the app's registered
+URL unless an MCP URL is set for the app in Stackure. See [MCP](sdk.md#mcp).
+
 ## Verify manually
 
 ```python

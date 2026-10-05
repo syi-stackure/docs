@@ -87,6 +87,34 @@ The user's permissions arrive as `user_permissions` on the user object.
 
 ---
 
+## Sign out
+
+Mount `logout` so every method on the logout path reaches it, not POST only,
+and trigger it with a form or button that POSTs from your app's own page:
+
+```html
+<form method="post" action="/logout"><button>Sign out</button></form>
+```
+
+A link or any other request is sent to Stackure's sign-out page, where the
+user confirms, with no call made and the cookie left in place.
+
+A request from your app's own page is a POST with
+`Sec-Fetch-Site: same-origin` or, only when that header is absent, with an
+`Origin` whose host and port match `Host` and whose scheme is `https` if the
+request arrived over HTTPS. A request that repeats `Sec-Fetch-Site`, `Origin`
+or `Host` never counts. On that POST, `logout`:
+
+1. Signs the user out everywhere with a server-side call to Stackure
+2. Clears your app's cookie
+3. Redirects to Stackure, or, if the call failed, to Stackure's sign-out page,
+   where the user can finish signing out
+
+The cookie is `SameSite=Lax`, so without this check a link on any other site
+could sign the user out with no confirmation.
+
+---
+
 ## Configuration
 
 There is no configuration API. Point an SDK at a non-production environment by
@@ -114,7 +142,8 @@ Every SDK exposes one error type with the same five categories:
 | `network` | Everything else |
 
 `verify` is the exception: it never fails. Transport and API problems come
-back as a 500 result so you can decide how to respond.
+back as a 500 result so you can decide how to respond. `logout` never fails
+either: it always answers with a redirect.
 
 ---
 

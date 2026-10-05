@@ -60,16 +60,30 @@ let resp = stackure::send_magic_link("user@example.com", Some(APP_ID)).await?;
 ## Log out
 
 ```rust
-let response: Response<Body> = stackure::logout(&parts);
+async fn logout(parts: Parts) -> Response<Body> {
+    stackure::logout(&parts).await
+}
+
+let app = Router::new().route("/logout", any(logout));
 ```
 
-Returns a 303 that clears the app's cookie and redirects to Stackure's
-sign-out.
+Mount it for every method on the logout path, as `any` does here. Trigger it
+with a form or button that POSTs from the app's own page; a link or any other
+request is sent to Stackure's sign-out page, where the user confirms.
+
+That POST signs the user out everywhere with a server-side call, then returns
+a 303 that clears the app's cookie and redirects to Stackure. If that call
+fails, the 303 goes to Stackure's sign-out page, where the user can finish
+signing out. See [Sign out](sdk.md#sign-out).
+
+`logout` is asynchronous: awaiting it yields the `Response<B>`, never an
+error.
 
 ## Errors
 
-Everything except `verify` returns `StackureError`. Match on the variant, or
-call `.code()` for the same category string the other SDKs expose as `.code`:
+Everything except `verify` and `logout` returns `StackureError`. Match on the
+variant, or call `.code()` for the same category string the other SDKs expose
+as `.code`:
 
 ```rust
 use stackure::StackureError;

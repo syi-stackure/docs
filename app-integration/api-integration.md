@@ -109,12 +109,28 @@ curl "https://stackure.com/api/public/auth/session/validate?app_id=YOUR_APP_ID" 
 
 ## Step 4. Sign the user out
 
+Route every method on your sign-out path to one handler, and trigger it with a
+form or button that POSTs from your own page. Make this call from your server
+only for a POST with `Sec-Fetch-Site: same-origin` or, only when that header
+is absent, with an `Origin` whose host and port match `Host` and whose scheme
+is `https` if the request arrived over HTTPS. A request that repeats
+`Sec-Fetch-Site`, `Origin` or `Host` does not qualify.
+
 ```bash
 curl -X POST https://stackure.com/api/public/auth/sign-out \
   -H "Authorization: Bearer SESSION_TOKEN"
 ```
 
-Clear the cookie you set in Step 2 as well.
+This signs the user out everywhere. Any 2xx status is success, whatever the
+body. Clear the cookie you set in Step 2 as well. If the call fails, still
+clear the cookie and send the browser to `https://stackure.com/signout`, where
+the user can finish signing out.
+
+For any other request (a link, a GET, a POST from another site), make no
+call, leave the cookie in place, and send the browser to
+`https://stackure.com/signout`, where the user confirms the sign-out. Your
+cookie is `SameSite=Lax`, so a sign-out route that acts on such a request lets
+a link on any other site sign the user out everywhere with no confirmation.
 
 ---
 

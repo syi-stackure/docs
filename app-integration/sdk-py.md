@@ -61,23 +61,41 @@ resp = stackure.send_magic_link("user@example.com", app_id)
 ## Log out
 
 ```python
-r = stackure.logout(request)
-```
+METHODS = ["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
 
-Returns the status and headers that clear the app's cookie and redirect to
-Stackure's sign-out. Your framework builds the response:
-
-```python
 # Flask
-return "", r.status, r.headers
+@app.route("/logout", methods=METHODS)
+def logout():
+    r = stackure.logout(request)
+    return "", r.status, r.headers
 
-# Starlette / FastAPI
-return Response(status_code=r.status, headers=dict(r.headers))
+# FastAPI
+@app.api_route("/logout", methods=METHODS, include_in_schema=False)
+async def logout(request: Request):
+    r = await asyncio.to_thread(stackure.logout, request)
+    return Response(status_code=r.status, headers=dict(r.headers))
+
+# Starlette: the same function, routed with
+Route("/logout", logout, methods=METHODS)
 ```
+
+Mount it for every method on the logout path. Trigger it with a form or
+button that POSTs from the app's own page; a link or any other request is sent
+to Stackure's sign-out page, where the user confirms.
+
+That POST signs the user out everywhere with a server-side call, then returns
+the status and headers that clear the app's cookie and redirect to Stackure.
+If that call fails, the redirect goes to Stackure's sign-out page, where the
+user can finish signing out. See [Sign out](sdk.md#sign-out).
+
+`logout` is synchronous and returns a `Redirect` (`status`, `headers`) for
+your framework to send; it never raises. It blocks for up to 2 seconds, hence
+`asyncio.to_thread` in the `async def` view.
 
 ## Errors
 
-Everything except `verify` raises `StackureError`. Switch on `.code`:
+Everything except `verify` and `logout` raises `StackureError`; those two
+never raise. Switch on `.code`:
 
 ```python
 from stackure import StackureError

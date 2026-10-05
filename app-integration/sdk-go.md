@@ -54,10 +54,19 @@ resp, err := stackure.SendMagicLink("user@example.com", appID)
 ## Log out
 
 ```go
-stackure.Logout(w, r)
+http.HandleFunc("/logout", stackure.Logout)
 ```
 
-Clears the app's cookie and redirects to Stackure's sign-out.
+Mount `Logout` on the path alone, with no method in the pattern (`"/logout"`,
+not `"POST /logout"`), so every request reaches it. Trigger it with a form or
+button that POSTs from the app's own page; a link or any other request is sent
+to Stackure's sign-out page, where the user confirms.
+
+`Logout` has the `http.HandlerFunc` signature and returns nothing. That POST
+signs the user out everywhere with a server-side call, clears the app's
+cookie, and redirects to Stackure. If the call fails, the redirect goes to
+Stackure's sign-out page, where the user can finish signing out. See
+[Sign out](sdk.md#sign-out).
 
 ## Errors
 

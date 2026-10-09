@@ -130,6 +130,26 @@ middleware as well. When it turns a request away, the answer is JSON:
 
 ---
 
+## Identity facts
+
+Every authenticated user, from the auth or the MCP middleware, carries two
+facts from their Stackure org (`UserIsAppAdmin` and `UserTeams` in Go):
+
+| Field | Meaning |
+|---|---|
+| `user_is_app_admin` | The user is an app admin or owner in their Stackure org, in charge of its apps |
+| `user_teams` | The Stackure teams the user belongs to, each a `team_id` and `team_name`; empty when none |
+
+The directory call lists the users and teams in the caller's org who can open
+your app, for pickers and sharing. It uses the request's session cookie, so
+call it from a route behind the auth middleware; MCP bearer tokens are not
+accepted. No valid session is an `auth` error.
+
+Stackure defines no in-app permissions. Your app decides what these facts
+mean.
+
+---
+
 ## Configuration
 
 There is no configuration API. Every SDK reads its settings from the
@@ -187,6 +207,7 @@ either: it always answers with a redirect.
 | Read user | `UserFromContext` | `userFromRequest` | `user_from_request` | `user_from_request` |
 | Magic link | `SendMagicLink` | `sendMagicLink` | `send_magic_link` | `send_magic_link` |
 | Raw validation | `ValidateSession` | `validateSession` | `validate_session` | `validate_session` |
+| Directory | `Directory` | `directory` | `directory` | `directory` |
 | Sign out | `Logout` | `logout` | `logout` | `logout` |
 
 ---

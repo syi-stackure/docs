@@ -65,6 +65,28 @@ app secret; there is no extra setup.
 The MCP endpoint must be served from the same site as the app's registered
 URL unless an MCP URL is set for the app in Stackure. See [MCP](sdk.md#mcp).
 
+## Identity facts
+
+Every authenticated `User`, from `auth` or `mcp`, also carries
+`user_is_app_admin` (an app admin or owner in their Stackure org) and
+`user_teams` (their Stackure teams, a tuple of `Team(team_id, team_name)`,
+empty when none).
+
+List the users and teams in the caller's org who can open the app:
+
+```python
+d = stackure.directory(request)
+# d.users: DirectoryUser(user_id, user_email, user_first_name, user_last_name)
+# d.teams: Team(team_id, team_name)
+```
+
+`directory` accepts what `verify` accepts and uses the session cookie, so call
+it behind `auth`, not `mcp`. No valid session raises `StackureError("auth")`.
+It is synchronous; in an `async def` view use `asyncio.to_thread`.
+
+Stackure defines no in-app permissions; your app decides what these facts
+mean. See [Identity facts](sdk.md#identity-facts).
+
 ## Verify manually
 
 ```python

@@ -190,6 +190,52 @@ paths:
           $ref: '#/components/responses/BadRequest'
         default:
           $ref: '#/components/responses/InternalError'
+  /api/public/directory:
+    get:
+      tags: [Authentication]
+      summary: List the users and teams in the caller's org who can open the app
+      description: |
+        For app pickers and sharing. Authenticated like session validation: the user's session token as the
+        session cookie or `Authorization: Bearer`, plus the app secret. MCP credentials are not accepted.
+        Stackure defines no in-app permissions; the app decides what users and teams may do.
+      operationId: listDirectory
+      parameters:
+        - name: app_id
+          in: query
+          required: true
+          description: Stackure application identifier
+          schema:
+            type: string
+            format: uuid
+        - name: X-App-Secret
+          in: header
+          required: true
+          description: The app secret
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Users and teams in the caller's org who can open the app
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SDKDirectoryResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          description: '`invalid session` when there is no valid session, `invalid app secret` for a wrong or missing secret'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Rate limited; retry after `Retry-After` seconds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          $ref: '#/components/responses/InternalError'
   /api/public/auth/sign-out:
     post:
       tags: [Authentication]
@@ -2061,6 +2107,40 @@ components:
         user_id:
           type: string
           format: uuid
+        account_id:
+          type: string
+          format: uuid
+        user_email:
+          type: string
+          format: email
+        user_first_name:
+          type: string
+        user_last_name:
+          type: string
+        user_is_app_admin:
+          type: boolean
+          description: The user is an app admin or owner in their Stackure org, in charge of its apps. The app decides what this means.
+        user_teams:
+          type: array
+          description: The Stackure teams the user belongs to in their org; empty when none
+          items:
+            $ref: '#/components/schemas/SDKTeam'
+      required: [user_id, account_id, user_email, user_first_name, user_last_name, user_is_app_admin, user_teams]
+    SDKTeam:
+      type: object
+      properties:
+        team_id:
+          type: string
+          format: uuid
+        team_name:
+          type: string
+      required: [team_id, team_name]
+    SDKDirectoryUser:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
         user_email:
           type: string
           format: email
@@ -2069,6 +2149,18 @@ components:
         user_last_name:
           type: string
       required: [user_id, user_email, user_first_name, user_last_name]
+    SDKDirectoryResponse:
+      type: object
+      properties:
+        users:
+          type: array
+          items:
+            $ref: '#/components/schemas/SDKDirectoryUser'
+        teams:
+          type: array
+          items:
+            $ref: '#/components/schemas/SDKTeam'
+      required: [users, teams]
     InviteUserRequest:
       type: object
       required:

@@ -57,6 +57,26 @@ real time with the same app secret. There is no extra setup.
 The MCP endpoint must be served from the same site as the app's registered
 URL unless an MCP URL is set for the app in Stackure. See [MCP](sdk.md#mcp).
 
+## Identity facts
+
+Every authenticated `User`, from `Auth` or `MCP`, also carries
+`UserIsAppAdmin` (an app admin or owner in their Stackure org) and `UserTeams`
+(their Stackure teams, `[]Team{TeamID, TeamName}`, empty when none).
+
+List the users and teams in the caller's org who can open the app:
+
+```go
+dir, err := stackure.Directory(r)
+// dir.Users: UserID, UserEmail, UserFirstName, UserLastName
+// dir.Teams: TeamID, TeamName
+```
+
+`Directory` uses the session cookie, so call it behind `Auth`, not `MCP`. No
+valid session is an `auth` error.
+
+Stackure defines no in-app permissions; your app decides what these facts
+mean. See [Identity facts](sdk.md#identity-facts).
+
 ## Verify manually
 
 ```go

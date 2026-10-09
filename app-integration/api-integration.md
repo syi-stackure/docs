@@ -77,6 +77,7 @@ rejects the session.
 ```bash
 curl "https://stackure.com/api/public/auth/session/validate?app_id=YOUR_APP_ID" \
   -H "Authorization: Bearer SESSION_TOKEN" \
+  -H "X-App-Secret: YOUR_APP_SECRET" \
   -H "User-Agent: ORIGINAL_BROWSER_USER_AGENT" \
   -H "X-Forwarded-For: ORIGINAL_CLIENT_IP"
 ```
@@ -87,12 +88,21 @@ curl "https://stackure.com/api/public/auth/session/validate?app_id=YOUR_APP_ID" 
   "authenticated": true,
   "user": {
     "user_id": "uuid",
+    "account_id": "uuid",
     "user_email": "user@example.com",
     "user_first_name": "John",
-    "user_last_name": "Doe"
+    "user_last_name": "Doe",
+    "user_is_app_admin": false,
+    "user_teams": [{ "team_id": "uuid", "team_name": "Support" }]
   }
 }
 ```
+
+- `user_is_app_admin`: the user is an app admin or owner in their Stackure org, in charge of its apps
+- `user_teams`: the Stackure teams the user belongs to in their org, empty when none
+
+Both are present for every authenticated session, MCP included. Stackure
+defines no in-app permissions; your app decides what they mean.
 
 **Response if the session is invalid or expired**
 ```json
@@ -195,6 +205,40 @@ same host and port), unless an MCP URL is set for the app in Stackure.
 Access ends when the user signs out, disconnects the client, loses access to
 your app, or leaves the connection unused for 30 days. Users can see and
 disconnect their AI clients in Stackure under **AI Clients**.
+
+---
+
+## Step 6. List who can open your app
+
+Optional. For pickers and sharing, list the users and teams in the caller's
+org who can open your app. Authenticate as in Step 3, with the session token
+from your cookie. MCP credentials are not accepted.
+
+**Request**
+```bash
+curl "https://stackure.com/api/public/directory?app_id=YOUR_APP_ID" \
+  -H "Authorization: Bearer SESSION_TOKEN" \
+  -H "X-App-Secret: YOUR_APP_SECRET" \
+  -H "User-Agent: ORIGINAL_BROWSER_USER_AGENT" \
+  -H "X-Forwarded-For: ORIGINAL_CLIENT_IP"
+```
+
+**Response**
+```json
+{
+  "users": [
+    { "user_id": "uuid", "user_email": "user@example.com", "user_first_name": "John", "user_last_name": "Doe" }
+  ],
+  "teams": [{ "team_id": "uuid", "team_name": "Support" }]
+}
+```
+
+| Status | Body | When |
+|---|---|---|
+| 401 | `{"error":"invalid session"}` | No valid session |
+| 401 | `{"error":"invalid app secret"}` | Wrong or missing app secret |
+| 400 | `{"error":"app_id required"}` or `{"error":"invalid app_id format"}` | Missing or malformed `app_id` |
+| 429 | `{"error":"too many requests, please try again later"}` | Rate limited; honour `Retry-After` |
 
 ---
 

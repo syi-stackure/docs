@@ -66,25 +66,6 @@ The middleware inspects the `Accept` header on a 401:
 }
 ```
 
-A 403 always returns JSON:
-
-```json
-{
-  "error": "Forbidden",
-  "message": "Requires one of: can_approve_invoice",
-  "sign_in_url": ""
-}
-```
-
----
-
-## Permissions
-
-Pass the permissions a route requires. The user must hold at least one of
-them; passing none means "any authenticated user".
-
-The user's permissions arrive as `user_permissions` on the user object.
-
 ---
 
 ## Sign out
@@ -119,10 +100,9 @@ could sign the user out with no confirmation.
 
 AI clients such as Claude, Claude Code, VS Code and Cursor reach your app
 through its MCP endpoint. Protecting it takes one line: mount the MCP
-middleware on that route, `MCP` in Go and `mcp` in the other SDKs. It takes
-the same arguments as the auth middleware and uses the same
-`STACKURE_APP_ID` and `STACKURE_APP_SECRET`, so there is no new secret and no
-extra setup.
+middleware on that route, `MCP` in Go and `mcp` in the other SDKs. It uses
+the same `STACKURE_APP_ID` and `STACKURE_APP_SECRET` as the auth middleware,
+so there is no new secret and no extra setup.
 
 1. The user adds your app's MCP address in their AI client
 2. The client is told to sign in at Stackure
@@ -146,7 +126,6 @@ middleware as well. When it turns a request away, the answer is JSON:
 | Status | Body | When |
 |---|---|---|
 | 401 | `{"error":"unauthorized"}` | Not signed in. The `WWW-Authenticate` header tells the AI client where to sign in |
-| 403 | `{"error":"forbidden"}` | Signed in, but holds none of the required permissions |
 | 503 | `{"error":"unavailable"}` | The check against Stackure could not be completed |
 
 ---

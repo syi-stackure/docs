@@ -89,8 +89,7 @@ curl "https://stackure.com/api/public/auth/session/validate?app_id=YOUR_APP_ID" 
     "user_id": "uuid",
     "user_email": "user@example.com",
     "user_first_name": "John",
-    "user_last_name": "Doe",
-    "user_permissions": ["can_approve_invoice", "edit_any_app"]
+    "user_last_name": "Doe"
   }
 }
 ```
@@ -167,8 +166,7 @@ curl "https://stackure.com/api/public/auth/session/validate?app_id=YOUR_APP_ID&m
 **Response if signed in**
 
 The same body as in Step 3: `"authenticated": true` and the `user` object.
-Serve the request. If the route needs a permission that is not in
-`user_permissions`, answer `403` with the body `{"error":"forbidden"}`.
+Serve the request.
 
 **Response if not signed in**
 ```json

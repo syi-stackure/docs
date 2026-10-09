@@ -24,10 +24,10 @@ The SDK reads both from the environment, so no function takes an app ID. See
 import stackure
 
 # ASGI — FastAPI, Starlette, Quart
-app = stackure.auth("can_approve_invoice")(app)
+app = stackure.auth()(app)
 
 # WSGI — Flask, Django
-flask_app.wsgi_app = stackure.auth("can_approve_invoice")(flask_app.wsgi_app)
+flask_app.wsgi_app = stackure.auth()(flask_app.wsgi_app)
 ```
 
 The same wrapper handles both; it detects the protocol from the app you wrap.
@@ -36,7 +36,7 @@ Access the authenticated user in your view:
 
 ```python
 user = stackure.user_from_request(request)
-print(user.user_email, user.user_permissions)
+print(user.user_email, user.account_id)
 ```
 
 - API requests get JSON errors
@@ -47,7 +47,7 @@ print(user.user_email, user.user_permissions)
 
 ```python
 # ASGI — FastAPI, Starlette
-app.mount("/mcp", stackure.mcp("can_approve_invoice")(mcp_app))
+app.mount("/mcp", stackure.mcp()(mcp_app))
 
 # WSGI
 mcp_wsgi_app = stackure.mcp()(mcp_wsgi_app)
@@ -57,10 +57,10 @@ AI clients (Claude, Claude Code, VS Code, Cursor) sign users in through
 Stackure. This one line checks every MCP request in real time with the same
 app secret; there is no extra setup.
 
-- `mcp` wraps ASGI and WSGI apps like `auth`, with the same optional permissions and `user_from_request`
+- `mcp` wraps ASGI and WSGI apps like `auth`, with the same `user_from_request`
 - It reads `Authorization: Bearer` and ignores cookies, so keep the MCP route outside `stackure.auth`
 - A request that is not signed in gets a `401` with a `WWW-Authenticate` header that tells the AI client where to sign in, and the JSON body `{"error":"unauthorized"}`
-- A missing permission gets a `403`, a failed check a `503`; never a redirect
+- A failed check gets a `503`; never a redirect
 
 The MCP endpoint must be served from the same site as the app's registered
 URL unless an MCP URL is set for the app in Stackure. See [MCP](sdk.md#mcp).
@@ -68,7 +68,7 @@ URL unless an MCP URL is set for the app in Stackure. See [MCP](sdk.md#mcp).
 ## Verify manually
 
 ```python
-result = stackure.verify(request, "can_approve_invoice")
+result = stackure.verify(request)
 
 if not result.authenticated:
     # result.error.code, result.error.message, result.error.sign_in_url

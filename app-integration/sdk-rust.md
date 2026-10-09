@@ -26,14 +26,14 @@ use stackure::{auth, user_from_request};
 
 let app = Router::new()
     .route("/admin", get(handler))
-    .layer(auth(&["can_approve_invoice"]));
+    .layer(auth());
 ```
 
 Access the authenticated user in your handler:
 
 ```rust
 let user = user_from_request(&parts).unwrap();
-println!("{} {:?}", user.user_email, user.user_permissions);
+println!("{} {}", user.user_email, user.account_id);
 ```
 
 In axum you can also take an `Extension<User>` directly.
@@ -49,17 +49,17 @@ use stackure::mcp;
 
 let app = Router::new()
     .route("/mcp", any(handler))
-    .layer(mcp(&[]));
+    .layer(mcp());
 ```
 
 AI clients such as Claude, Claude Code, VS Code and Cursor sign users in
 through Stackure. This one line checks every MCP request in real time with the
 same app secret; there is no extra setup.
 
-- `mcp` takes the same arguments as `auth`, including required permissions, and attaches the user exactly as `auth` does
+- `mcp` attaches the user exactly as `auth` does
 - Only `Authorization: Bearer` is read; cookies are ignored
 - A request that is not signed in gets a `401` with a `WWW-Authenticate` header that tells the AI client where to sign in, and the JSON body `{"error":"unauthorized"}`
-- A missing permission gets a `403`, a failed check a `503`, all JSON and never a redirect
+- A failed check gets a `503`, all JSON and never a redirect
 
 The MCP endpoint must be served from the same site as the app's registered
 URL unless an MCP URL is set for the app in Stackure. See [MCP](sdk.md#mcp).
@@ -67,7 +67,7 @@ URL unless an MCP URL is set for the app in Stackure. See [MCP](sdk.md#mcp).
 ## Verify manually
 
 ```rust
-let result = stackure::verify(&parts, &["can_approve_invoice"]).await;
+let result = stackure::verify(&parts).await;
 
 if !result.authenticated {
     let error = result.error.unwrap();

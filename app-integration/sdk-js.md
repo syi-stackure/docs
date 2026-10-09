@@ -23,9 +23,9 @@ The SDK reads both from the environment, so no function takes an app ID. See
 ```js
 import { auth, userFromRequest } from 'stackure';
 
-app.get('/admin', auth('can_approve_invoice'), (req, res) => {
+app.get('/admin', auth(), (req, res) => {
   const user = userFromRequest(req);
-  res.json({ email: user.user_email, permissions: user.user_permissions });
+  res.json({ email: user.user_email, account: user.account_id });
 });
 ```
 
@@ -52,11 +52,10 @@ AI clients such as Claude, Claude Code, VS Code and Cursor sign users in
 through Stackure. This one line checks every MCP request in real time with the
 same app secret. There is no extra setup.
 
-`mcp` takes the same arguments as `auth`, including required permissions, and
-attaches the user the same way.
+`mcp` attaches the user the same way as `auth`.
 
 - A request that is not signed in gets a `401` with a `WWW-Authenticate` header that tells the AI client where to sign in, and the JSON body `{"error":"unauthorized"}`
-- A missing permission gets a `403`, a failed check gets a `503`
+- A failed check gets a `503`
 - `mcp` reads only `Authorization: Bearer`, never a cookie, and never redirects
 
 The MCP endpoint must be served from the same site as the app's registered
@@ -67,7 +66,7 @@ URL unless an MCP URL is set for the app in Stackure. See [MCP](sdk.md#mcp).
 ```js
 import { verify } from 'stackure';
 
-const result = await verify(req, 'can_approve_invoice');
+const result = await verify(req);
 
 if (!result.authenticated) {
   return res.status(result.error.code).json(result.error);

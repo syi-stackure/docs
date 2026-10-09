@@ -23,14 +23,14 @@ The SDK reads both from the environment, so no function takes an app ID. See
 ```go
 import "stackure.com/sdk-go"
 
-http.Handle("/admin", stackure.Auth("can_approve_invoice")(handler))
+http.Handle("/admin", stackure.Auth()(handler))
 ```
 
 Access the authenticated user in your handler:
 
 ```go
 user := stackure.UserFromContext(r.Context())
-fmt.Println(user.UserEmail, user.UserPermissions)
+fmt.Println(user.UserEmail, user.AccountID)
 ```
 
 - API requests get JSON errors
@@ -47,11 +47,11 @@ AI clients such as Claude, Claude Code, VS Code and Cursor sign users in
 through Stackure. This one line checks every MCP request against Stackure in
 real time with the same app secret. There is no extra setup.
 
-`MCP` takes the same arguments as `Auth`, including required permissions, and
-attaches the user the same way, so `UserFromContext` works in `mcpHandler`.
+`MCP` attaches the user the same way as `Auth`, so `UserFromContext` works in
+`mcpHandler`.
 
 - A request that is not signed in gets a `401` with a `WWW-Authenticate` header that tells the AI client where to sign in, and the JSON body `{"error":"unauthorized"}`
-- A missing permission gets a `403`, a check that cannot be completed gets a `503`
+- A check that cannot be completed gets a `503`
 - `MCP` never redirects and never reads or sets a cookie
 
 The MCP endpoint must be served from the same site as the app's registered
@@ -60,7 +60,7 @@ URL unless an MCP URL is set for the app in Stackure. See [MCP](sdk.md#mcp).
 ## Verify manually
 
 ```go
-result := stackure.Verify(r, "can_approve_invoice")
+result := stackure.Verify(r)
 
 if !result.Authenticated {
     // result.Error.Code, result.Error.Message, result.Error.SignInURL

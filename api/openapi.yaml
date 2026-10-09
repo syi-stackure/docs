@@ -61,7 +61,7 @@ tags:
       Role definitions and assignments. Create custom roles, manage role permissions, and assign roles to users.
   - name: Permissions
     description: |
-      Permission management. Define app-level permissions and compose them into roles for granular access control.
+      Platform permissions that roles are composed of. List the permissions available to compose into custom roles.
   
   # Account & Monitoring
   - name: Account
@@ -610,63 +610,6 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         default:
           $ref: '#/components/responses/InternalError'
-  /api/internal/permission:
-    post:
-      tags: [Permissions]
-      summary: Create an app-level permission
-      operationId: createAppPermission
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AppPermissionRequest'
-      responses:
-        '200':
-          description: Permission created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OperationResult'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        default:
-          $ref: '#/components/responses/InternalError'
-    delete:
-      tags: [Permissions]
-      summary: Delete an app-level permission
-      operationId: deleteAppPermission
-      security:
-        - bearerAuth: []
-      parameters:
-        - $ref: '#/components/parameters/PermissionId'
-      responses:
-        '200':
-          description: Permission deleted
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OperationResult'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        default:
-          $ref: '#/components/responses/InternalError'
   /api/internal/role/permissions:
     get:
       tags: [Roles]
@@ -766,28 +709,6 @@ paths:
                   $ref: '#/components/schemas/User'
         '403':
           $ref: '#/components/responses/Forbidden'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        default:
-          $ref: '#/components/responses/InternalError'
-  /api/internal/app/permissions:
-    get:
-      tags: [Permissions]
-      summary: List custom permissions defined for an app
-      operationId: listAppPermissions
-      security:
-        - bearerAuth: []
-      parameters:
-        - $ref: '#/components/parameters/AppId'
-      responses:
-        '200':
-          description: App permissions returned
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: string
         '401':
           $ref: '#/components/responses/Unauthorized'
         default:
@@ -1951,14 +1872,6 @@ components:
       description: Role key
       schema:
         type: string
-    PermissionId:
-      name: permission_id
-      in: query
-      required: true
-      description: Permission identifier
-      schema:
-        type: string
-        format: uuid
     PermissionKeys:
       name: permission_keys
       in: query
@@ -2155,10 +2068,6 @@ components:
           type: string
         user_last_name:
           type: string
-        user_permissions:
-          type: array
-          items:
-            type: string
       required: [user_id, user_email, user_first_name, user_last_name]
     InviteUserRequest:
       type: object
@@ -2396,22 +2305,6 @@ components:
           items:
             type: string
       required: [role_key, permission_keys]
-    AppPermissionRequest:
-      type: object
-      properties:
-        permission_id:
-          type: string
-          format: uuid
-        permission_key:
-          type: string
-        permission_name:
-          type: string
-        permission_description:
-          type: string
-        app_id:
-          type: string
-          format: uuid
-      required: [permission_key, permission_name, app_id]
     Team:
       type: object
       properties:

@@ -91,14 +91,14 @@ curl -X POST "https://stackure.com/api/internal/app/partner?app_id=YOUR_APP_ID" 
 
 ## Step 3. Add authentication to your app
 
-Stackure authenticates the user. Your app receives a verified session and the user's access context.
+Stackure authenticates the user. Your app receives a verified session and the user's identity.
 
 Choose your integration path:
 
 ### SDK (recommended)
 
-One line to protect a route. The SDK handles the sign-in handoff, session
-validation, and permission checks for you.
+One line to protect a route. The SDK handles the sign-in handoff and session
+validation for you.
 
 Set `STACKURE_APP_ID` to the `app_id` from Step 1 and `STACKURE_APP_SECRET` to
 the app secret shown once when you registered the app (rotate it from the app's

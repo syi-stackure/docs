@@ -37,14 +37,9 @@ visible to your app.
 
 ## Session binding
 
-Stackure binds each session to the browser's user agent and IP address.
-Because the SDK validates from your server rather than from the browser, it
-forwards the original `User-Agent` and `X-Forwarded-For` on every validation
-call.
-
-**Your app must see the real client IP.** If it runs behind a proxy or CDN,
-make sure that layer sets `X-Forwarded-For`. Without it, Stackure sees your
-server's address instead of the browser's and rejects the session.
+Sessions are not bound to the browser's user agent or IP. The SDK still
+forwards the original `User-Agent` and `X-Forwarded-For` on every call to
+Stackure, but they are informational only.
 
 Every request is validated against Stackure, so revoking a session takes
 effect immediately.

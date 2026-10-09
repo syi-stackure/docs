@@ -68,10 +68,9 @@ authentication, but that cookie is also accepted.
 
 Your backend must validate the `session_token` before serving protected data.
 
-Stackure binds each session to the browser's user agent and IP address. Since
-you are validating from your server, you must forward the browser's original
-`User-Agent` and `X-Forwarded-For` — otherwise Stackure sees your server and
-rejects the session.
+Sessions are not bound to the browser's user agent or IP. Forwarding the
+browser's original `User-Agent` and `X-Forwarded-For` is optional and
+informational only.
 
 **Request**
 ```bash
